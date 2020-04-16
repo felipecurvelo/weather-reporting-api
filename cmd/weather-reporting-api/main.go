@@ -2,18 +2,25 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/api/resources"
 )
 
-func FirstEndpoint(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome! This is the first endpoint working!\n")
-}
-
 func main() {
-	router := httprouter.New()
-	router.GET("/", FirstEndpoint)
-	log.Fatal(http.ListenAndServe(":8080", router))
+	serverOptions := &api.ServerOptions{
+		Port: 8080,
+	}
+
+	server := api.NewServer(serverOptions)
+
+	server.RegisterResource(&resources.Weather{}).
+		Start()
+
+	fmt.Printf("HTTP Server started on port: %d\n", serverOptions.Port)
+
+	server.WaitForShutdownSignal().
+		Close()
+
+	fmt.Println("HTTP Server stopped")
 }
