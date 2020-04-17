@@ -17,5 +17,5 @@ func (res *Weather) FirstEndpoint(w http.ResponseWriter, r *http.Request, _ http
 
 func (res *Weather) Register(router *httprouter.Router) {
 	res.router = router
-	res.router.GET("/", res.FirstEndpoint)
+	res.router.GET("/first_endpoint/", res.FirstEndpoint)
 }
