@@ -26,6 +26,10 @@ type ServerOptions struct {
 	Port int
 }
 
+func (s *Server) GetHttpHandler() http.Handler {
+	return s.httpServer.Handler
+}
+
 func (s *Server) Start() *Server {
 	s.stop = make(chan os.Signal)
 	signal.Notify(s.stop, syscall.SIGTERM, syscall.SIGINT)

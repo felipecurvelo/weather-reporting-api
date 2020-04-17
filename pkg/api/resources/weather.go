@@ -12,7 +12,7 @@ type Weather struct {
 }
 
 func (res *Weather) FirstEndpoint(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome! This is the first endpoint working!\n")
+	fmt.Fprint(w, "Welcome! This is the first endpoint working!")
 }
 
 func (res *Weather) Register(router *httprouter.Router) {
