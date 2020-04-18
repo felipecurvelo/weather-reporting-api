@@ -9,15 +9,24 @@ import (
 
 type Authorizer interface {
 	GenerateAccessToken() string
+	ValidateToken(string) bool
 }
 
 type MainAuth struct {
 	validToken string
 }
 
-func (auth MainAuth) GenerateAccessToken() string {
+func (auth *MainAuth) GenerateAccessToken() string {
 	auth.validToken = auth.createHash(time.Now().String())
 	return auth.validToken
+}
+
+func (auth *MainAuth) ValidateToken(token string) bool {
+	if token == "" {
+		return false
+	}
+
+	return token == auth.validToken
 }
 
 func (auth *MainAuth) createHash(s string) string {
@@ -28,8 +37,8 @@ func (auth *MainAuth) createHash(s string) string {
 
 type contextKey struct{}
 
-func NewAuth() MainAuth {
-	return MainAuth{}
+func NewAuth() *MainAuth {
+	return &MainAuth{}
 }
 
 func FromContext(ctx context.Context) Authorizer {

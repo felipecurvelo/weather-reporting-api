@@ -2,6 +2,7 @@ package resources
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -11,13 +12,37 @@ import (
 )
 
 func TestWeatherFirstEndpoint_ReturnWelcomeMessage(t *testing.T) {
-	ctx := context.Background()
-	ctx = authorizer.NewContext(ctx, authorizer.MainAuth{})
+	ctx := authorizer.NewContext(context.Background(), authorizer.NewAuthMock())
 
-	testServer := api.NewTestServer(ctx, t).RegisterResource(&Weather{})
+	testServer := api.NewTestServer(ctx, t).
+		RegisterResource(&Auth{}).
+		RegisterResource(&Weather{})
 
-	testServer.Test("GET", "/first_endpoint/").Now()
+	authRequestBody := `
+		{
+			"name": "kirang",
+			"password": "secret"
+		}
+	`
+
+	// Call the auth endpoint to get the auth token
+	testServer.Test("POST", "/auth/").
+		WithBody(authRequestBody).
+		Now()
+
 	statusCode, responseBody := testServer.GetResponse()
+	assert.Equal(t, http.StatusOK, statusCode)
+
+	// Parse the auth response
+	var tokenObj map[string]interface{}
+	err := json.Unmarshal([]byte(responseBody), &tokenObj)
+	assert.NoError(t, err)
+
+	// Uses the parsed auth as authorization header
+	testServer.Test("GET", "/first_endpoint/").
+		WithHeader("Authorization", tokenObj["token"].(string)).
+		Now()
+	statusCode, responseBody = testServer.GetResponse()
 
 	assert.Equal(t, http.StatusOK, statusCode)
 	assert.Contains(t, responseBody, "This is the first endpoint working!")

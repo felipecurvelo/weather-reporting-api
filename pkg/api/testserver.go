@@ -39,6 +39,11 @@ func (ts *TestServer) Test(method string, endpointURL string) *TestServer {
 	return ts
 }
 
+func (ts *TestServer) WithHeader(key string, value string) *TestServer {
+	ts.httpRequest.Header.Set(key, value)
+	return ts
+}
+
 func (ts *TestServer) WithBody(requestBody string) *TestServer {
 	ts.httpRequest.Body = ioutil.NopCloser(bytes.NewBuffer([]byte(requestBody)))
 	ts.httpRequest.ContentLength = int64(len([]byte(requestBody)))
