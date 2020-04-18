@@ -15,5 +15,5 @@ func TestWeatherFirstEndpoint_ReturnWelcomeMessage(t *testing.T) {
 	statusCode, responseBody := testServer.GetResponse()
 
 	assert.Equal(t, http.StatusOK, statusCode)
-	assert.Equal(t, "Welcome! This is the first endpoint working!", responseBody)
+	assert.Equal(t, "\"Welcome! This is the first endpoint working!\"", responseBody)
 }

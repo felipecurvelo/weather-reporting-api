@@ -1,18 +1,20 @@
 package resources
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
 	"github.com/julienschmidt/httprouter"
 )
 
 type Weather struct {
+	api.ResourceBase
 	router *httprouter.Router
 }
 
-func (res *Weather) FirstEndpoint(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome! This is the first endpoint working!")
+func (weather *Weather) FirstEndpoint(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	responseMessage := "Welcome! This is the first endpoint working!"
+	weather.SetResponse(http.StatusOK, responseMessage, w)
 }
 
 func (res *Weather) Register(router *httprouter.Router) {
