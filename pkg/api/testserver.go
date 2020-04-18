@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -62,12 +63,12 @@ func (ts *TestServer) GetResponse() (int, string) {
 	return ts.httpResponse.StatusCode, string(responseBody)
 }
 
-func NewTestServer(t *testing.T) *TestServer {
+func NewTestServer(ctx context.Context, t *testing.T) *TestServer {
 	serverOptions := &ServerOptions{
 		Port: 8080,
 	}
 
-	apiServer := NewServer(serverOptions)
+	apiServer := NewServer(ctx, serverOptions)
 
 	return &TestServer{
 		apiServer: apiServer,

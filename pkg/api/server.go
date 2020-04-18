@@ -17,9 +17,10 @@ type Resource interface {
 }
 
 type Server struct {
-	httpServer *http.Server
-	stop       chan os.Signal
-	Router     *httprouter.Router
+	httpServer  *http.Server
+	mainContext context.Context
+	Router      *httprouter.Router
+	stop        chan os.Signal
 }
 
 type ServerOptions struct {
@@ -27,7 +28,11 @@ type ServerOptions struct {
 }
 
 func (s *Server) GetHttpHandler() http.Handler {
-	return s.httpServer.Handler
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r = r.WithContext(s.mainContext)
+		s.httpServer.Handler.ServeHTTP(w, r)
+	})
+	return handler
 }
 
 func (s *Server) Start() *Server {
@@ -63,10 +68,11 @@ func (s *Server) RegisterResource(resource Resource) *Server {
 	return s
 }
 
-func NewServer(options *ServerOptions) *Server {
+func NewServer(ctx context.Context, options *ServerOptions) *Server {
 	server := &Server{
-		httpServer: &http.Server{Addr: fmt.Sprintf("0.0.0.0:%d", options.Port)},
-		Router:     httprouter.New(),
+		httpServer:  &http.Server{Addr: fmt.Sprintf("0.0.0.0:%d", options.Port)},
+		mainContext: ctx,
+		Router:      httprouter.New(),
 	}
 
 	handler := http.Handler(server.Router)

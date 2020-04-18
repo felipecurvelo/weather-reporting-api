@@ -1,9 +1,11 @@
 package resources
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/auth"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -13,7 +15,8 @@ type Weather struct {
 }
 
 func (weather *Weather) FirstEndpoint(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	responseMessage := "Welcome! This is the first endpoint working!"
+	a := auth.FromContext(r.Context())
+	responseMessage := fmt.Sprintf("Welcome %s! This is the first endpoint working!", a.Name)
 	weather.SetResponse(http.StatusOK, responseMessage, w)
 }
 

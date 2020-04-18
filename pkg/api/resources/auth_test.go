@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -9,7 +10,7 @@ import (
 )
 
 func TestAuthEndpoint_WithRightParams_ReturnOK(t *testing.T) {
-	testServer := api.NewTestServer(t).RegisterResource(&Auth{})
+	testServer := api.NewTestServer(context.Background(), t).RegisterResource(&Auth{})
 
 	requestBody := `
 		{
