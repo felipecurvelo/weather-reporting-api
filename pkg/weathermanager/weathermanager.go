@@ -3,6 +3,7 @@ package weathermanager
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -22,16 +23,28 @@ func (m *MainWeatherManager) SaveWeather(city string, temperatures map[string]in
 	for k, _ := range temperatures {
 		_, err := time.Parse(dateLayout, k)
 		if err != nil {
-			return fmt.Errorf("Invalid initial date %s (%s)", k, err.Error())
+			return fmt.Errorf("Invalid date %s (%s)", k, err.Error())
 		}
 	}
 
-	m.weathers[city] = temperatures
+	m.weathers[strings.ToLower(city)] = temperatures
 	return nil
 }
 
 func (m *MainWeatherManager) GetWeather(city string, initialDate string, endDate string) (map[string]int, error) {
-	_, ok := m.weathers[city]
+	if city == "" {
+		return nil, fmt.Errorf("Empty city")
+	}
+
+	if initialDate == "" {
+		return nil, fmt.Errorf("Empty initial date")
+	}
+
+	if endDate == "" {
+		return nil, fmt.Errorf("Empty end date")
+	}
+
+	_, ok := m.weathers[strings.ToLower(city)]
 	if !ok {
 		return nil, fmt.Errorf("Weather report not found")
 	}
@@ -47,8 +60,12 @@ func (m *MainWeatherManager) GetWeather(city string, initialDate string, endDate
 		return nil, fmt.Errorf("Invalid end date (%s)", err.Error())
 	}
 
+	if !initial.Before(end) {
+		return nil, fmt.Errorf("Invalid date range")
+	}
+
 	temperatures := map[string]int{}
-	for k, e := range m.weathers[city] {
+	for k, e := range m.weathers[strings.ToLower(city)] {
 		temperatureDate, _ := time.Parse(dateLayout, k)
 		if temperatureDate.After(initial) && temperatureDate.Before(end) {
 			temperatures[k] = e
@@ -59,7 +76,7 @@ func (m *MainWeatherManager) GetWeather(city string, initialDate string, endDate
 }
 
 func (m *MainWeatherManager) DeleteWeather(city string) error {
-	delete(m.weathers, city)
+	delete(m.weathers, strings.ToLower(city))
 	return nil
 }
 

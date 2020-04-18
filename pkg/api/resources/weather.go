@@ -82,7 +82,7 @@ func (weather *Weather) SaveCityWeather(w http.ResponseWriter, r *http.Request, 
 	err = weatherMgr.SaveWeather(requestModel.City, weatherReport)
 	if err != nil {
 		e := internalerror.New(fmt.Sprintf("Error saving weather (%s)", err.Error()))
-		weather.SetResponse(http.StatusInternalServerError, e, w)
+		weather.SetResponse(http.StatusBadRequest, e, w)
 		return
 	}
 
