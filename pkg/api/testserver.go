@@ -1,13 +1,22 @@
 package api
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type TestServer struct {
-	apiServer *Server
+	apiServer    *Server
+	httpServer   *httptest.Server
+	httpRequest  *http.Request
+	httpResponse *http.Response
+	errors       []error
+	t            *testing.T
 }
 
 func (ts *TestServer) RegisterResource(resource Resource) *TestServer {
@@ -15,29 +24,45 @@ func (ts *TestServer) RegisterResource(resource Resource) *TestServer {
 	return ts
 }
 
-func (ts *TestServer) CallEndpoint(method string, endpointURL string) (string, int, error) {
-	httpServer := httptest.NewUnstartedServer(ts.apiServer.GetHttpHandler())
-	httpServer.Start()
-	defer httpServer.Close()
+func (ts *TestServer) Test(method string, endpointURL string) *TestServer {
+	ts.httpServer = httptest.NewUnstartedServer(ts.apiServer.GetHttpHandler())
 
-	url := "http://" + httpServer.Listener.Addr().String() + endpointURL
+	url := "http://" + ts.httpServer.Listener.Addr().String() + endpointURL
 
 	request, err := http.NewRequest(method, url, nil)
-	if err != nil {
-		return "", 0, err
-	}
+	assert.NoError(ts.t, err)
 
 	request.Header.Set("Accept", "application/json, text/plain, */*")
 
-	httpClient := &http.Client{}
-	response, err := httpClient.Do(request)
-
-	responseBody, _ := ioutil.ReadAll(response.Body)
-
-	return string(responseBody), response.StatusCode, nil
+	ts.httpRequest = request
+	return ts
 }
 
-func NewTestServer() *TestServer {
+func (ts *TestServer) WithBody(requestBody string) *TestServer {
+	ts.httpRequest.Body = ioutil.NopCloser(bytes.NewBuffer([]byte(requestBody)))
+	ts.httpRequest.ContentLength = int64(len([]byte(requestBody)))
+	return ts
+}
+
+func (ts *TestServer) Now() *TestServer {
+	ts.httpServer.Start()
+	defer ts.httpServer.Close()
+
+	httpClient := &http.Client{}
+	response, err := httpClient.Do(ts.httpRequest)
+	assert.NoError(ts.t, err)
+
+	ts.httpResponse = response
+	return ts
+}
+
+func (ts *TestServer) GetResponse() (int, string) {
+	responseBody, err := ioutil.ReadAll(ts.httpResponse.Body)
+	assert.NoError(ts.t, err)
+	return ts.httpResponse.StatusCode, string(responseBody)
+}
+
+func NewTestServer(t *testing.T) *TestServer {
 	serverOptions := &ServerOptions{
 		Port: 8080,
 	}
@@ -46,5 +71,6 @@ func NewTestServer() *TestServer {
 
 	return &TestServer{
 		apiServer: apiServer,
+		t:         t,
 	}
 }

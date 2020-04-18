@@ -9,11 +9,11 @@ import (
 )
 
 func TestWeatherFirstEndpoint_ReturnWelcomeMessage(t *testing.T) {
-	testServer := api.NewTestServer().RegisterResource(&Weather{})
+	testServer := api.NewTestServer(t).RegisterResource(&Weather{})
 
-	responseBody, statusCode, err := testServer.CallEndpoint("GET", "/first_endpoint/")
+	testServer.Test("GET", "/first_endpoint/").Now()
+	statusCode, responseBody := testServer.GetResponse()
 
-	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, statusCode)
 	assert.Equal(t, "Welcome! This is the first endpoint working!", responseBody)
 }
