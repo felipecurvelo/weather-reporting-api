@@ -1,9 +1,6 @@
 package resources
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
@@ -27,17 +24,10 @@ type authResponseModel struct {
 }
 
 func (a *Auth) Authorize(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		a.SetResponse(http.StatusBadRequest, err.Error(), w)
-		return
-	}
-
 	var requestModel authRequestModel
-	err = json.Unmarshal(b, &requestModel)
+	err := a.ParseFromBody(r, &requestModel)
 	if err != nil {
-		e := internalerror.New(fmt.Sprintf("Invalid request body (%s)", err.Error()))
-		a.SetResponse(http.StatusBadRequest, e, w)
+		a.SetResponse(http.StatusInternalServerError, err, w)
 		return
 	}
 

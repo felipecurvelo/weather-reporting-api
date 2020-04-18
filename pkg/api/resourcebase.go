@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/authorizer"
@@ -10,6 +12,20 @@ import (
 )
 
 type ResourceBase struct {
+}
+
+func (b *ResourceBase) ParseFromBody(r *http.Request, requestModel interface{}) error {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, requestModel)
+	if err != nil {
+		return fmt.Errorf("Invalid request body (%s)", err.Error())
+	}
+
+	return nil
 }
 
 func (b *ResourceBase) ValidateAuthToken(ctx context.Context, r *http.Request) error {
