@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/felipecurvelo/weather-reporting-api/pkg/auth"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/authorizer"
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api/resources"
@@ -16,13 +16,12 @@ func main() {
 	}
 
 	ctx := context.Background()
-	ctx = auth.NewContext(ctx, auth.Auth{
-		Name: "felipe",
-	})
+	ctx = authorizer.NewContext(ctx, authorizer.NewAuth())
 
 	server := api.NewServer(ctx, serverOptions)
 
 	server.RegisterResource(&resources.Weather{}).
+		RegisterResource(&resources.Auth{}).
 		Start()
 
 	fmt.Printf("HTTP Server started on port: %d\n", serverOptions.Port)

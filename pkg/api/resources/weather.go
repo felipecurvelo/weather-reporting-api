@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
-	"github.com/felipecurvelo/weather-reporting-api/pkg/auth"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/authorizer"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -15,12 +15,16 @@ type Weather struct {
 }
 
 func (weather *Weather) FirstEndpoint(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	a := auth.FromContext(r.Context())
-	responseMessage := fmt.Sprintf("Welcome %s! This is the first endpoint working!", a.Name)
+	auth := authorizer.FromContext(r.Context())
+	if auth == nil {
+		weather.SetResponse(http.StatusInternalServerError, "Internal Server Error", w)
+		return
+	}
+	responseMessage := fmt.Sprintf("Welcome %s! This is the first endpoint working!", auth.GenerateAccessToken())
 	weather.SetResponse(http.StatusOK, responseMessage, w)
 }
 
-func (res *Weather) Register(router *httprouter.Router) {
-	res.router = router
-	res.router.GET("/first_endpoint/", res.FirstEndpoint)
+func (weather *Weather) Register(router *httprouter.Router) {
+	weather.router = router
+	weather.router.GET("/first_endpoint/", weather.FirstEndpoint)
 }

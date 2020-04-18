@@ -6,15 +6,13 @@ import (
 	"testing"
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
-	"github.com/felipecurvelo/weather-reporting-api/pkg/auth"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/authorizer"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestWeatherFirstEndpoint_ReturnWelcomeMessage(t *testing.T) {
 	ctx := context.Background()
-	ctx = auth.NewContext(ctx, auth.Auth{
-		Name: "felipe",
-	})
+	ctx = authorizer.NewContext(ctx, authorizer.MainAuth{})
 
 	testServer := api.NewTestServer(ctx, t).RegisterResource(&Weather{})
 
@@ -22,5 +20,5 @@ func TestWeatherFirstEndpoint_ReturnWelcomeMessage(t *testing.T) {
 	statusCode, responseBody := testServer.GetResponse()
 
 	assert.Equal(t, http.StatusOK, statusCode)
-	assert.Equal(t, "\"Welcome felipe! This is the first endpoint working!\"", responseBody)
+	assert.Contains(t, responseBody, "This is the first endpoint working!")
 }

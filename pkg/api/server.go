@@ -75,8 +75,12 @@ func NewServer(ctx context.Context, options *ServerOptions) *Server {
 		Router:      httprouter.New(),
 	}
 
-	handler := http.Handler(server.Router)
-	server.httpServer.Handler = handler
+	mainHandler := http.Handler(server.Router)
+	contextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r = r.WithContext(ctx)
+		mainHandler.ServeHTTP(w, r)
+	})
+	server.httpServer.Handler = contextHandler
 
 	return server
 }
