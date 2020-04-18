@@ -1,6 +1,9 @@
 package weathermanager
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type WeatherManager interface {
 	SaveWeather(string, map[string]int) error
@@ -21,6 +24,11 @@ func (m *MainWeatherManager) SaveWeather(city string, temperatures map[string]in
 }
 
 func (m *MainWeatherManager) GetWeather(city string) ([]map[string]int, error) {
+	_, ok := m.weathers[city]
+	if !ok {
+		return nil, fmt.Errorf("Weather report not found")
+	}
+
 	return m.weathers[city], nil
 }
 
