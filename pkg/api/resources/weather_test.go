@@ -903,7 +903,7 @@ func TestWeatherDelete_ReturnEmpty(t *testing.T) {
 		Now()
 	statusCode, responseBody = testServer.GetResponse()
 	assert.Equal(t, http.StatusOK, statusCode)
-	assert.Equal(t, "{\"weather_report\":{\"vancouver\":{\"2020-04-18\":15}}}", responseBody)
+	assert.Equal(t, "{\"city\":\"vancouver\",\"weather\":[{\"date\":\"2020-04-18\",\"temperature\":15}]}", responseBody)
 
 	deleteRequestBody := `
 		{

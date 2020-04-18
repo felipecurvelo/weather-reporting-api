@@ -21,16 +21,19 @@ type messageResponseModel struct {
 	Message string `json:"message"`
 }
 
+type weatherEntry struct {
+	Date        string `json:"date"`
+	Temperature int    `json:"temperature"`
+}
+
 type weatherReportResponseModel struct {
-	WeatherReport map[string]interface{} `json:"weather_report"`
+	City    string         `json:"city"`
+	Weather []weatherEntry `json:"weather"`
 }
 
 type saveWeatherReportRequestModel struct {
-	City    string `json:"city"`
-	Weather []struct {
-		Date        string `json:"date"`
-		Temperature int    `json:"temperature"`
-	} `json:"weather"`
+	City    string         `json:"city"`
+	Weather []weatherEntry `json:"weather"`
 }
 
 type getWeatherReportRequestModel struct {
@@ -122,7 +125,7 @@ func (weather *Weather) GetCityWeather(w http.ResponseWriter, r *http.Request, _
 		return
 	}
 
-	vancouverWeather, err := weatherMgr.GetWeather(
+	cityWeather, err := weatherMgr.GetWeather(
 		requestModel.City,
 		requestModel.InitialDate,
 		requestModel.EndDate,
@@ -133,10 +136,18 @@ func (weather *Weather) GetCityWeather(w http.ResponseWriter, r *http.Request, _
 		return
 	}
 
+	weatherEntries := []weatherEntry{}
+	for k, v := range cityWeather {
+		weatherEntries = append(weatherEntries, weatherEntry{
+			Date:        k,
+			Temperature: v,
+		})
+
+	}
+
 	weather.SetResponse(http.StatusOK, weatherReportResponseModel{
-		WeatherReport: map[string]interface{}{
-			requestModel.City: vancouverWeather,
-		},
+		City:    requestModel.City,
+		Weather: weatherEntries,
 	}, w)
 }
 

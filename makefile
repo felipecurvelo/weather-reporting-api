@@ -6,4 +6,4 @@ run: build
 
 test:
 	go clean -testcache
-	go test -v -parallel 5 ./...
+	go test -v -parallel 5 ./... -coverprofile cp.out
