@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/felipecurvelo/weather-reporting-api/pkg/weathermanager"
+
 	"github.com/felipecurvelo/weather-reporting-api/pkg/authorizer"
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
@@ -17,6 +19,7 @@ func main() {
 
 	ctx := context.Background()
 	ctx = authorizer.NewContext(ctx, authorizer.NewAuth())
+	ctx = weathermanager.NewContext(ctx, weathermanager.New())
 
 	server := api.NewServer(ctx, serverOptions)
 

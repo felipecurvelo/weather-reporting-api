@@ -1,11 +1,12 @@
 package resources
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
 	"github.com/felipecurvelo/weather-reporting-api/pkg/authorizer"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/weathermanager"
+
+	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
 	"github.com/felipecurvelo/weather-reporting-api/pkg/internalerror"
 	"github.com/julienschmidt/httprouter"
 )
@@ -15,31 +16,42 @@ type Weather struct {
 	router *httprouter.Router
 }
 
-func (weather *Weather) FirstEndpoint(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	auth := authorizer.FromContext(r.Context())
+type weatherResponseModel struct {
+	Message string `json:"message"`
+}
+
+func (weather *Weather) SaveCityWeather(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	ctx := r.Context()
+	auth := authorizer.FromContext(ctx)
 	if auth == nil {
 		e := internalerror.New("Internal Server Error")
 		weather.SetResponse(http.StatusInternalServerError, e, w)
 		return
 	}
 
-	token := r.Header.Get("Authorization")
-	if token == "" {
-		e := internalerror.New("Empty Token")
-		weather.SetResponse(http.StatusInternalServerError, e, w)
-		return
-	}
-	if !auth.ValidateToken(token) {
-		e := internalerror.New("Invalid Token")
+	weatherMgr := weathermanager.FromContext(ctx)
+	if weatherMgr == nil {
+		e := internalerror.New("Internal Server Error")
 		weather.SetResponse(http.StatusInternalServerError, e, w)
 		return
 	}
 
-	responseMessage := fmt.Sprintf("Welcome %s! This is the first endpoint working!", auth.GenerateAccessToken())
-	weather.SetResponse(http.StatusOK, responseMessage, w)
+	err := weather.ValidateAuthToken(ctx, r)
+	if err != nil {
+		weather.SetResponse(http.StatusInternalServerError, err, w)
+		return
+	}
+
+	weatherMgr.SaveWeather("vancouver", map[string]int{
+		"2020-0-18": 15,
+	})
+
+	weather.SetResponse(http.StatusOK, weatherResponseModel{
+		"The weather was saved succesfully!",
+	}, w)
 }
 
 func (weather *Weather) Register(router *httprouter.Router) {
 	weather.router = router
-	weather.router.GET("/first_endpoint/", weather.FirstEndpoint)
+	weather.router.POST("/save/", weather.SaveCityWeather)
 }

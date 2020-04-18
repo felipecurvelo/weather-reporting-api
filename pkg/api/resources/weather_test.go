@@ -8,11 +8,13 @@ import (
 
 	"github.com/felipecurvelo/weather-reporting-api/pkg/api"
 	"github.com/felipecurvelo/weather-reporting-api/pkg/authorizer"
+	"github.com/felipecurvelo/weather-reporting-api/pkg/weathermanager"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestWeatherFirstEndpoint_ReturnWelcomeMessage(t *testing.T) {
 	ctx := authorizer.NewContext(context.Background(), authorizer.NewAuthMock())
+	ctx = weathermanager.NewContext(ctx, weathermanager.New())
 
 	testServer := api.NewTestServer(ctx, t).
 		RegisterResource(&Auth{}).
@@ -39,11 +41,11 @@ func TestWeatherFirstEndpoint_ReturnWelcomeMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Uses the parsed auth as authorization header
-	testServer.Test("GET", "/first_endpoint/").
+	testServer.Test("POST", "/save/").
 		WithHeader("Authorization", tokenObj["token"].(string)).
 		Now()
 	statusCode, responseBody = testServer.GetResponse()
 
 	assert.Equal(t, http.StatusOK, statusCode)
-	assert.Contains(t, responseBody, "This is the first endpoint working!")
+	assert.Equal(t, "{\"message\":\"The weather was saved succesfully!\"}", responseBody)
 }

@@ -35,11 +35,11 @@ func (auth *MainAuth) createHash(s string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-type contextKey struct{}
-
 func NewAuth() *MainAuth {
 	return &MainAuth{}
 }
+
+type contextKey struct{}
 
 func FromContext(ctx context.Context) Authorizer {
 	auth, _ := ctx.Value(contextKey{}).(Authorizer)
